@@ -44,6 +44,8 @@
   <input id="password" type="password" autocomplete="off">
 
   <label>Account PIN (optional)</label>
+  <label>2FA code (if account has 2-step verification)</label>
+<input id="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8">
   <input id="pin" type="password" autocomplete="off">
 
   <button id="go">Unlink Email</button>
@@ -73,7 +75,7 @@ $("go").addEventListener("click", async () => {
     const res = await fetch("/api", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cookie, password, pin })
+      body: JSON.stringify({ cookie, password, pin, code: $("code").value.trim() })
     });
     const data = await res.json();
 
